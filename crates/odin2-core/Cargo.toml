@@ -1,0 +1,21 @@
+[package]
+name = "odin2-core"
+version = "0.1.0"
+edition = "2021"
+description = "Odin 2 synthesizer core DSP engine in Rust"
+license = "GPL-3.0"
+repository = "https://github.com/bascanada/odin2-rs"
+
+[lib]
+crate-type = ["lib"]
+
+[features]
+default = []
+std = []
+
+[dependencies]
+libm = "0.2"
+wide = "0.7"
+
+[dev-dependencies]
+hound = "3.5"

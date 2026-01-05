@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/odin2-core",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0"
+repository = "https://github.com/bascanada/odin2-rs"
+
+[workspace.dependencies]
+libm = "0.2"
+wide = "0.7"
+hound = "3.5"
