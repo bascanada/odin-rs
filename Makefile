@@ -1,7 +1,7 @@
 # Odin 2 Rust - Makefile
 # ========================
 
-.PHONY: all build test samples clean check fmt lint doc help
+.PHONY: all build test samples clean check fmt lint doc help wavetables
 
 # Default target
 all: build test
@@ -73,6 +73,11 @@ clean-samples:
 	@echo "Cleaning samples..."
 	rm -rf samples/*.wav
 
+# Convert wavetables from C++ to Rust
+wavetables:
+	@echo "Converting wavetables from C++ to Rust..."
+	python3 scripts/convert_wavetables.py
+
 # Watch for changes and rebuild (requires cargo-watch)
 watch:
 	cargo watch -x "check -p odin2-core"
@@ -97,6 +102,7 @@ help:
 	@echo "  make test         - Run all tests"
 	@echo "  make test-verbose - Run tests with output"
 	@echo "  make samples      - Generate audio samples to samples/"
+	@echo "  make wavetables   - Convert C++ wavetables to Rust"
 	@echo "  make check        - Quick syntax check"
 	@echo "  make fmt          - Format code"
 	@echo "  make lint         - Run clippy linter"

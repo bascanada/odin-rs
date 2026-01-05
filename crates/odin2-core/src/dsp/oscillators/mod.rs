@@ -1,8 +1,26 @@
 //! Oscillator modules
 
 pub mod analog;
+pub mod chiptune;
+pub mod drift;
+pub mod fm;
+pub mod lfo;
+pub mod multi;
+pub mod noise;
+pub mod pm;
+pub mod vector;
+pub mod wavetable;
 
 pub use analog::AnalogOscillator;
+pub use chiptune::ChiptuneOscillator;
+pub use drift::DriftGenerator;
+pub use fm::{FmMode, FmOscillator};
+pub use lfo::{Lfo, LfoWaveform};
+pub use multi::MultiOscillator;
+pub use noise::NoiseOscillator;
+pub use pm::PmOscillator;
+pub use vector::VectorOscillator;
+pub use wavetable::WavetableOscillator;
 
 /// Waveform types for analog oscillator
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

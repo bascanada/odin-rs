@@ -1,9 +1,25 @@
 //! Filter modules
 
+pub mod biquad;
+pub mod comb;
+pub mod dc_blocker;
+pub mod diode;
+pub mod eq;
+pub mod formant;
+pub mod korg35;
 pub mod ladder;
+pub mod sem;
 pub mod va_one_pole;
 
+pub use biquad::{BiquadAllpass, BiquadFilter, BiquadResonator};
+pub use comb::CombFilter;
+pub use dc_blocker::DCBlockingFilter;
+pub use diode::DiodeFilter;
+pub use eq::{BiquadEQ, EQBand, EQBandType};
+pub use formant::{FormantFilter, Vowel};
+pub use korg35::Korg35Filter;
 pub use ladder::LadderFilter;
+pub use sem::SemFilter;
 pub use va_one_pole::VAOnePoleFilter;
 
 /// Filter type for ladder filter

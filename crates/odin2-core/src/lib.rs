@@ -19,6 +19,7 @@ pub mod dsp;
 pub mod engine;
 pub mod voice;
 pub mod mod_matrix;
+pub mod wavetables;
 
 // Re-exports
 pub use engine::{OdinEngine, SynthEngine};

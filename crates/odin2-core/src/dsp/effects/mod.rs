@@ -1,6 +1,19 @@
 //! Effects modules
 
-// pub mod delay;
-// pub mod chorus;
+pub mod bitcrusher;
+pub mod chorus;
+pub mod delay;
+pub mod distortion;
+pub mod flanger;
+pub mod parametric_eq;
+pub mod phaser;
+pub mod ring_mod;
 
-// Effects will be added later
+pub use bitcrusher::Bitcrusher;
+pub use chorus::Chorus;
+pub use delay::Delay;
+pub use distortion::{DistortionAlgorithm, OversamplingDistortion};
+pub use flanger::Flanger;
+pub use parametric_eq::{MultibandEQ, ParametricEQ};
+pub use phaser::Phaser;
+pub use ring_mod::RingModulator;

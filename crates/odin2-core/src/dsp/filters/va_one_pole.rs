@@ -96,6 +96,48 @@ impl VAOnePoleFilter {
         self.alpha = g / (1.0 + g);
     }
 
+    /// Set the frequency directly (convenience method)
+    pub fn set_frequency(&mut self, freq: f32) {
+        self.update(freq);
+    }
+
+    // Setters for diode/ladder filter integration
+
+    /// Set alpha coefficient directly
+    pub fn set_alpha(&mut self, alpha: f32) {
+        self.alpha = alpha;
+    }
+
+    /// Set beta coefficient directly
+    pub fn set_beta(&mut self, beta: f32) {
+        self.beta = beta;
+    }
+
+    /// Set gamma coefficient directly
+    pub fn set_gamma(&mut self, gamma: f32) {
+        self.gamma = gamma;
+    }
+
+    /// Set delta coefficient directly
+    pub fn set_delta(&mut self, delta: f32) {
+        self.delta = delta;
+    }
+
+    /// Set epsilon coefficient directly
+    pub fn set_epsilon(&mut self, epsilon: f32) {
+        self.epsilon = epsilon;
+    }
+
+    /// Set a_0 coefficient directly
+    pub fn set_a0(&mut self, a0: f32) {
+        self.a_0 = a0;
+    }
+
+    /// Set feedback value
+    pub fn set_feedback(&mut self, feedback: f32) {
+        self.feedback = feedback;
+    }
+
     /// Get feedback output for ladder filter integration
     #[inline]
     pub fn get_feedback_output(&self) -> f32 {
