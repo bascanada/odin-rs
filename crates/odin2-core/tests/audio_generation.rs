@@ -5,11 +5,11 @@
 use odin2_core::dsp::oscillators::{
     AnalogOscillator, WavetableOscillator, Oscillator, Waveform,
     FmOscillator, FmMode, PmOscillator, Lfo, LfoWaveform, NoiseOscillator,
-    MultiOscillator, DriftGenerator,
+    MultiOscillator, DriftGenerator, WavetableOsc2D, NUMBER_OF_WAVETABLES_2D,
 };
 use odin2_core::dsp::filters::{LadderFilter, Filter, LadderFilterType, DiodeFilter, SemFilter, BiquadEQ, EQBand, EQBandType};
 use odin2_core::dsp::envelopes::{Adsr, Envelope};
-use odin2_core::dsp::effects::{Delay, Chorus, OversamplingDistortion, DistortionAlgorithm, Bitcrusher, ParametricEQ};
+use odin2_core::dsp::effects::{Delay, Chorus, OversamplingDistortion, DistortionAlgorithm, Bitcrusher, ParametricEQ, ZitaReverb};
 use odin2_core::engine::{OdinEngine, SynthEngine};
 
 use hound::{WavSpec, WavWriter};
@@ -1011,4 +1011,213 @@ fn test_generate_drift() {
 
     write_wav("target/test_drift_filter.wav", &samples);
     println!("Generated: target/test_drift_filter.wav");
+}
+
+#[test]
+fn test_generate_wavetable_2d() {
+    let duration_secs = 4.0;
+    let num_samples = (SAMPLE_RATE as f32 * duration_secs) as usize;
+
+    // Test 1: Position sweep on first preset (Basic: Saw->Square->Tri->Sine)
+    let mut osc = WavetableOsc2D::new(SAMPLE_RATE as f32);
+    osc.set_preset(0);
+    osc.set_frequency(220.0);
+
+    let mut samples = Vec::with_capacity(num_samples);
+    for i in 0..num_samples {
+        // Sweep position from 0 to 1
+        let t = i as f32 / num_samples as f32;
+        osc.set_position(t);
+        samples.push(osc.process() * 0.5);
+    }
+
+    write_wav("target/test_wavetable2d_basic_sweep.wav", &samples);
+    println!("Generated: target/test_wavetable2d_basic_sweep.wav");
+
+    // Test 2: Multiple presets at fixed position
+    for preset_idx in [0usize, 5, 10, 15, 20, 25, 30].iter().take(NUMBER_OF_WAVETABLES_2D) {
+        let mut osc = WavetableOsc2D::new(SAMPLE_RATE as f32);
+        osc.set_preset(*preset_idx);
+        osc.set_frequency(220.0);
+        osc.set_position(0.5); // Middle position
+
+        samples.clear();
+        for _ in 0..num_samples {
+            samples.push(osc.process() * 0.5);
+        }
+
+        let name = osc.preset_name();
+        let filename = format!("target/test_wavetable2d_preset_{}_{}.wav", preset_idx, name);
+        write_wav(&filename, &samples);
+        println!("Generated: {}", filename);
+    }
+
+    // Test 3: LFO modulating position
+    let mut osc = WavetableOsc2D::new(SAMPLE_RATE as f32);
+    osc.set_preset(0);
+    osc.set_frequency(220.0);
+    osc.set_position(0.5);
+
+    let mut lfo = Lfo::new(SAMPLE_RATE as f32);
+    lfo.set_frequency(0.2); // Slow modulation
+    lfo.set_waveform(LfoWaveform::Sine);
+
+    samples.clear();
+    for _ in 0..num_samples {
+        // LFO modulates position around 0.5
+        let lfo_val = lfo.process();
+        let pos_mod = lfo_val * 0.5; // +/- 0.5
+        samples.push(osc.process_with_mod(pos_mod) * 0.5);
+    }
+
+    write_wav("target/test_wavetable2d_lfo_mod.wav", &samples);
+    println!("Generated: target/test_wavetable2d_lfo_mod.wav");
+
+    // Test 4: Position sweep with filter
+    let mut osc = WavetableOsc2D::new(SAMPLE_RATE as f32);
+    osc.set_preset(3); // Glass preset
+    osc.set_frequency(110.0);
+
+    let mut filter = LadderFilter::new(SAMPLE_RATE as f32);
+    filter.set_filter_type(LadderFilterType::LP4);
+    filter.set_resonance(0.5);
+
+    samples.clear();
+    for i in 0..num_samples {
+        let t = i as f32 / num_samples as f32;
+        // Sweep both position and filter
+        osc.set_position(t);
+        filter.set_cutoff(200.0 + t * 4000.0);
+
+        let osc_out = osc.process();
+        let filtered = filter.process(osc_out);
+        samples.push(filtered * 0.5);
+    }
+
+    write_wav("target/test_wavetable2d_glass_filtered.wav", &samples);
+    println!("Generated: target/test_wavetable2d_glass_filtered.wav");
+
+    // Test 5: Chord with 2D wavetables
+    let chord_notes = [220.0, 277.18, 329.63]; // A major
+    let mut samples = vec![0.0f32; num_samples];
+
+    for &freq in &chord_notes {
+        let mut osc = WavetableOsc2D::new(SAMPLE_RATE as f32);
+        osc.set_preset(6); // Skyline preset
+        osc.set_frequency(freq);
+
+        for (i, sample) in samples.iter_mut().enumerate() {
+            // Slow position sweep
+            let t = i as f32 / num_samples as f32;
+            osc.set_position(t * 0.5 + 0.25); // Sweep 0.25 to 0.75
+            *sample += osc.process() * 0.2;
+        }
+    }
+
+    write_wav("target/test_wavetable2d_chord.wav", &samples);
+    println!("Generated: target/test_wavetable2d_chord.wav");
+}
+
+#[test]
+fn test_generate_reverb() {
+    let duration_secs = 4.0;
+    let num_samples = (SAMPLE_RATE as f32 * duration_secs) as usize;
+
+    // Test 1: Reverb on plucked notes
+    let mut osc = AnalogOscillator::new(SAMPLE_RATE as f32);
+    osc.set_waveform(Waveform::Saw);
+
+    let mut env = Adsr::new(SAMPLE_RATE as f32);
+    env.set_attack(0.01);
+    env.set_decay(0.2);
+    env.set_sustain(0.0);
+    env.set_release(0.1);
+
+    let mut reverb = ZitaReverb::new(SAMPLE_RATE as f32);
+    reverb.set_mix(0.5);
+    reverb.set_rtmid(2.5);
+    reverb.set_fdamp(6000.0);
+
+    // Play notes
+    let notes = [220.0, 330.0, 440.0, 550.0];
+    let note_interval = num_samples / notes.len();
+
+    let mut samples = vec![0.0f32; num_samples * 2];
+    let mut current_note = 0;
+
+    for i in 0..num_samples {
+        if i % note_interval == 0 && current_note < notes.len() {
+            osc.set_frequency(notes[current_note]);
+            env.trigger();
+            current_note += 1;
+        }
+
+        if i % note_interval == note_interval / 4 {
+            env.release();
+        }
+
+        let env_val = env.process();
+        let dry = osc.process() * env_val * 0.5;
+
+        let (left, right) = reverb.process(dry, dry);
+        samples[i * 2] = left;
+        samples[i * 2 + 1] = right;
+    }
+
+    write_stereo_wav("target/test_reverb_plucks.wav", &samples);
+    println!("Generated: target/test_reverb_plucks.wav");
+
+    // Test 2: Different decay times
+    for rt in [1.0f32, 2.0, 4.0] {
+        let mut reverb = ZitaReverb::new(SAMPLE_RATE as f32);
+        reverb.set_mix(0.7);
+        reverb.set_rtmid(rt);
+
+        // Send impulse
+        let (_, _) = reverb.process(1.0, 1.0);
+
+        samples.clear();
+        samples.resize(num_samples * 2, 0.0);
+
+        for i in 0..num_samples {
+            let (left, right) = reverb.process(0.0, 0.0);
+            samples[i * 2] = left;
+            samples[i * 2 + 1] = right;
+        }
+
+        let filename = format!("target/test_reverb_rt{:.0}s.wav", rt);
+        write_stereo_wav(&filename, &samples);
+        println!("Generated: {}", filename);
+    }
+
+    // Test 3: Reverb on pad chord
+    let chord_notes = [220.0, 277.18, 329.63]; // A major
+    let mut reverb = ZitaReverb::new(SAMPLE_RATE as f32);
+    reverb.set_mix(0.4);
+    reverb.set_rtmid(3.0);
+    reverb.set_xover(300.0);
+
+    samples.clear();
+    samples.resize(num_samples * 2, 0.0);
+
+    let mut oscs: Vec<_> = chord_notes.iter().map(|&freq| {
+        let mut osc = WavetableOscillator::new(SAMPLE_RATE as f32);
+        osc.set_wavetable(1); // FatSaw
+        osc.set_frequency(freq);
+        osc
+    }).collect();
+
+    for i in 0..num_samples {
+        let mut sum = 0.0;
+        for osc in &mut oscs {
+            sum += osc.process() * 0.2;
+        }
+
+        let (left, right) = reverb.process(sum, sum);
+        samples[i * 2] = left;
+        samples[i * 2 + 1] = right;
+    }
+
+    write_stereo_wav("target/test_reverb_pad.wav", &samples);
+    println!("Generated: target/test_reverb_pad.wav");
 }

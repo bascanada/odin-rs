@@ -20,6 +20,7 @@ pub mod engine;
 pub mod voice;
 pub mod mod_matrix;
 pub mod wavetables;
+pub mod preset;
 
 // Re-exports
 pub use engine::{OdinEngine, SynthEngine};

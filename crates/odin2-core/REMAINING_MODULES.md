@@ -4,11 +4,11 @@ Ce document liste les modules C++ d'Odin 2 qui restent à porter en Rust.
 
 ## Statut Global
 
-- **Oscillateurs**: 10/11 (91%) - MultiOsc + Drift ajoutés
-- **Filtres**: 10/10 (100%) - BiquadEQ ajouté
-- **Effets**: 10/13 (77%) - Distortion, Bitcrusher, ParametricEQ ajoutés
+- **Oscillateurs**: 11/11 (100%) ✅
+- **Filtres**: 10/10 (100%) ✅
+- **Effets**: 12/13 (92%) - ZitaReverb ajouté
 
-**Tests**: 131 total (106 unit + 25 audio generation)
+**Tests**: 145 total (118 unit + 27 audio generation)
 
 ---
 
@@ -25,8 +25,8 @@ Ce document liste les modules C++ d'Odin 2 qui restent à porter en Rust.
 - **Fichier C++**: `Source/audio/Oscillators/WavetableOsc2D.h/cpp`
 - **Description**: Wavetable 2D avec morphing entre wavetables
 - **Priorité**: MOYENNE
-- **Statut**: [ ] À implémenter
-- **Test WAV**: [ ] À créer
+- **Statut**: [x] Implémenté (`wavetable2d.rs`)
+- **Test WAV**: [x] `test_wavetable2d_*.wav`
 
 ### 3. DriftGenerator
 - **Fichier C++**: `Source/audio/Oscillators/DriftGenerator.h/cpp`
@@ -75,22 +75,22 @@ Ce document liste les modules C++ d'Odin 2 qui restent à porter en Rust.
 - **Fichier C++**: `Source/audio/FX/ZitaReverb.h/cpp`
 - **Description**: Réverbération algorithmique basée sur Zita-Rev1
 - **Priorité**: HAUTE (effet essentiel)
-- **Statut**: [ ] À implémenter
-- **Test WAV**: [ ] À créer
+- **Statut**: [x] Implémenté (`reverb.rs`)
+- **Test WAV**: [x] `test_reverb_*.wav`
 
 ### 9. SurgeReverb (optionnel)
 - **Fichier C++**: `Source/audio/FX/SurgeReverb.h/cpp`
 - **Description**: Réverbération alternative du synthétiseur Surge
 - **Priorité**: BASSE (alternative à Zita)
-- **Statut**: [ ] À implémenter
-- **Test WAV**: [ ] À créer
+- **Statut**: [ ] Optionnel - non implémenté
+- **Test WAV**: [ ] N/A
 
 ### 10. FeedbackDelayNetwork
 - **Fichier C++**: `Source/audio/FX/FeedbackDelayNetwork.h/cpp`
 - **Description**: Réseau de délais pour reverb (composant interne)
 - **Priorité**: HAUTE (requis par reverbs)
-- **Statut**: [ ] À implémenter
-- **Test WAV**: [ ] N/A (composant interne)
+- **Statut**: [x] Intégré dans ZitaReverb (`reverb.rs`)
+- **Test WAV**: [x] N/A (composant interne)
 
 ---
 
@@ -111,17 +111,20 @@ Ce document liste les modules C++ d'Odin 2 qui restent à porter en Rust.
 
 ## Modules Déjà Implémentés
 
-### Oscillateurs ✅
+### Oscillateurs ✅ (11/11)
 - [x] AnalogOscillator (`analog.rs`)
 - [x] WavetableOsc1D (`wavetable.rs`)
+- [x] WavetableOsc2D (`wavetable2d.rs`)
 - [x] FMOscillator (`fm.rs`)
 - [x] PMOscillator (`pm.rs`)
 - [x] NoiseOscillator (`noise.rs`)
 - [x] LFO (`lfo.rs`)
 - [x] VectorOscillator (`vector.rs`)
 - [x] ChiptuneOscillator (`chiptune.rs`)
+- [x] MultiOscillator (`multi.rs`)
+- [x] DriftGenerator (`drift.rs`)
 
-### Filtres ✅
+### Filtres ✅ (10/10)
 - [x] LadderFilter (`ladder.rs`)
 - [x] DiodeFilter (`diode.rs`)
 - [x] SEMFilter (`sem.rs`)
@@ -131,13 +134,19 @@ Ce document liste les modules C++ d'Odin 2 qui restent à porter en Rust.
 - [x] BiquadFilter/Allpass/Resonator (`biquad.rs`)
 - [x] VAOnePoleFilter (`va_one_pole.rs`)
 - [x] DCBlockingFilter (`dc_blocker.rs`)
+- [x] BiquadEQ (`eq.rs`)
 
-### Effets ✅
+### Effets (12/13)
 - [x] Delay (`delay.rs`)
 - [x] Chorus (`chorus.rs`)
 - [x] Phaser (`phaser.rs`)
 - [x] Flanger (`flanger.rs`)
 - [x] RingModulator (`ring_mod.rs`)
+- [x] OversamplingDistortion (`distortion.rs`)
+- [x] Bitcrusher (`bitcrusher.rs`)
+- [x] ParametricEQ (`parametric_eq.rs`)
+- [x] ZitaReverb (`reverb.rs`)
+- [ ] SurgeReverb (optionnel)
 
 ### Autres ✅
 - [x] ADSR Envelope (`adsr.rs`)

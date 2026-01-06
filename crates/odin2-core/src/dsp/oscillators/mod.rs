@@ -10,6 +10,7 @@ pub mod noise;
 pub mod pm;
 pub mod vector;
 pub mod wavetable;
+pub mod wavetable2d;
 
 pub use analog::AnalogOscillator;
 pub use chiptune::ChiptuneOscillator;
@@ -21,6 +22,7 @@ pub use noise::NoiseOscillator;
 pub use pm::PmOscillator;
 pub use vector::VectorOscillator;
 pub use wavetable::WavetableOscillator;
+pub use wavetable2d::{WavetableOsc2D, WAVETABLE_2D_PRESETS, NUMBER_OF_WAVETABLES_2D};
 
 /// Waveform types for analog oscillator
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

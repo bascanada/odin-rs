@@ -9,13 +9,24 @@ repository = "https://github.com/bascanada/odin2-rs"
 [lib]
 crate-type = ["lib"]
 
+[[bin]]
+name = "odin2-demo"
+path = "src/bin/demo.rs"
+required-features = ["std"]
+
+[[bin]]
+name = "morph-demo"
+path = "src/bin/morph_demo.rs"
+required-features = ["std"]
+
 [features]
 default = []
-std = []
+std = ["hound"]
 
 [dependencies]
 libm = "0.2"
 wide = "0.7"
+hound = { version = "3.5", optional = true }
 
 [dev-dependencies]
 hound = "3.5"
