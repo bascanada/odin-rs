@@ -13,6 +13,7 @@ use std::process::Command;
 
 use hound::{WavSpec, WavWriter};
 
+use odin2_core::constants::FILTER_ENV_MODULATION_HZ;
 use odin2_core::dsp::effects::{Chorus, Delay, ZitaReverb};
 use odin2_core::dsp::envelopes::{Adsr, Envelope};
 use odin2_core::dsp::filters::{Filter, LadderFilter, LadderFilterType};
@@ -396,7 +397,7 @@ impl Voice {
 
         // Update filter with morphed params + envelope
         let filter_env_val = self.filter_env.process();
-        let mod_cutoff = params.filter_freq + filter_env_val * params.filter_env_amount * 5000.0;
+        let mod_cutoff = params.filter_freq + filter_env_val * params.filter_env_amount * FILTER_ENV_MODULATION_HZ;
         self.filter.set_cutoff(mod_cutoff.clamp(20.0, 20000.0));
         self.filter.set_resonance(params.filter_res);
         self.filter.set_filter_type(LadderFilterType::LP4);
@@ -549,6 +550,11 @@ fn generate_morph_audio(sequence: &MorphSequence, melody: &Melody) -> Vec<f32> {
 }
 
 fn write_stereo_wav(path: &str, samples: &[f32]) {
+    // Create parent directory if it doesn't exist
+    if let Some(parent) = std::path::Path::new(path).parent() {
+        std::fs::create_dir_all(parent).ok();
+    }
+
     let spec = WavSpec {
         channels: 2,
         sample_rate: SAMPLE_RATE,
@@ -576,7 +582,7 @@ fn print_usage() {
     println!("  --presets A,B,C     Morph between named presets (comma-separated)");
     println!("  --melody NAME       Melody to play (default: slow_arpeggio)");
     println!("  --duration SECS     Duration per morph transition (default: 4.0)");
-    println!("  --output FILE       Output WAV file (default: ./morph_output.wav)");
+    println!("  --output FILE       Output WAV file (default: ../../samples/demos/morph_output.wav)");
     println!("  --play              Play audio after generation");
     println!("  --help              Show this help");
     println!();
@@ -606,7 +612,7 @@ fn main() {
     let mut preset_names: Option<String> = None;
     let mut melody_name = "slow_arpeggio".to_string();
     let mut duration = 4.0f32;
-    let mut output_file = "./morph_output.wav".to_string();
+    let mut output_file = "../../samples/demos/morph_output.wav".to_string();
     let mut play_audio = false;
 
     let mut i = 1;

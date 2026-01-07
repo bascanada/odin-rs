@@ -9,7 +9,7 @@
 //!   --list              List all available presets
 //!   --preset NAME       Use a specific preset (default: all)
 //!   --melody NAME       Use a specific melody (default: arpeggio)
-//!   --output DIR        Output directory (default: ./demo_output)
+//!   --output DIR        Output directory (default: ../../samples/demos)
 //!   --play              Play audio after generation (macOS only)
 //!   --factory NAME      Load and render a factory preset
 //!   --list-factory      List all factory presets
@@ -21,6 +21,7 @@ use std::process::Command;
 
 use hound::{WavSpec, WavWriter};
 
+use odin2_core::constants::FILTER_ENV_MODULATION_HZ;
 use odin2_core::dsp::effects::{Chorus, Delay, ZitaReverb};
 use odin2_core::dsp::envelopes::{Adsr, Envelope};
 use odin2_core::dsp::filters::{Filter, LadderFilter, LadderFilterType};
@@ -173,6 +174,11 @@ fn midi_to_freq(note: u8) -> f32 {
 }
 
 fn write_stereo_wav(path: &str, samples: &[f32]) {
+    // Create parent directory if it doesn't exist
+    if let Some(parent) = std::path::Path::new(path).parent() {
+        std::fs::create_dir_all(parent).ok();
+    }
+
     let spec = WavSpec {
         channels: 2,
         sample_rate: SAMPLE_RATE,
@@ -616,7 +622,7 @@ fn print_usage() {
     println!("  --list              List all available presets and melodies");
     println!("  --preset NAME       Use a specific preset (default: all)");
     println!("  --melody NAME       Use a specific melody (default: arpeggio)");
-    println!("  --output DIR        Output directory (default: ./demo_output)");
+    println!("  --output DIR        Output directory (default: ../../samples/demos)");
     println!("  --play              Play audio after generation (macOS only)");
     println!("  --factory NAME      Load and render a factory preset by name");
     println!("  --factory-file PATH Load and render a .odin preset file");
@@ -822,7 +828,7 @@ fn generate_odin_analog(preset: &OdinPreset, freq: f32, start: f32, dur: f32, sr
 
         if use_filter {
             let filter_env_val = filter_env.process();
-            let mod_cutoff = preset.filter1.frequency + filter_env_val * preset.filter1.env_amount * 5000.0;
+            let mod_cutoff = preset.filter1.frequency + filter_env_val * preset.filter1.env_amount * FILTER_ENV_MODULATION_HZ;
             filter.set_cutoff(mod_cutoff.clamp(20.0, 20000.0));
             out = filter.process(out);
         }
@@ -925,7 +931,7 @@ fn generate_odin_multi(preset: &OdinPreset, freq: f32, start: f32, dur: f32, sr:
 
         if use_filter {
             let filter_env_val = filter_env.process();
-            let mod_cutoff = preset.filter1.frequency + filter_env_val * preset.filter1.env_amount * 5000.0;
+            let mod_cutoff = preset.filter1.frequency + filter_env_val * preset.filter1.env_amount * FILTER_ENV_MODULATION_HZ;
             filter.set_cutoff(mod_cutoff.clamp(20.0, 20000.0));
             left = filter.process(left);
             right = filter.process(right);
@@ -996,7 +1002,7 @@ fn main() {
     let mut factory_preset: Option<String> = None;
     let mut factory_file: Option<String> = None;
     let mut melody_name = "arpeggio".to_string();
-    let mut output_dir = "./demo_output".to_string();
+    let mut output_dir = "../../samples/demos".to_string();
     let mut play_audio = false;
 
     let mut i = 1;

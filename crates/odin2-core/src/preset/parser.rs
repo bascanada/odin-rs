@@ -82,6 +82,202 @@ impl OdinPreset {
         Self::from_bytes(&data)
     }
 
+    /// Create a "Happy" emotional preset
+    ///
+    /// Characteristics: Bright, energetic, fast attack, high filter
+    pub fn create_happy() -> Self {
+        let mut preset = Self::default();
+        preset.name = "Happy (Procedural)".to_string();
+
+        // Bright oscillators with higher pitch
+        preset.osc1.volume = 0.8;
+        preset.osc1.octave = 0;
+        preset.osc1.semitones = 0;
+        preset.osc1.analog_wave = AnalogWaveform::Saw;
+
+        preset.osc2.volume = 0.6;
+        preset.osc2.octave = 1; // One octave up for brightness
+        preset.osc2.semitones = 7; // Perfect fifth
+        preset.osc2.analog_wave = AnalogWaveform::Pulse;
+
+        preset.osc3.volume = 0.3;
+        preset.osc3.octave = 2; // Two octaves up
+        preset.osc3.analog_wave = AnalogWaveform::Triangle;
+
+        // Bright, open filter
+        preset.filter1.frequency = 8000.0; // High cutoff
+        preset.filter1.resonance = 0.2;
+        preset.filter1.env_amount = 0.5; // Moderate modulation
+
+        // Fast, snappy envelope
+        preset.env1.attack = 0.01;
+        preset.env1.decay = 0.3;
+        preset.env1.sustain = 0.7;
+        preset.env1.release = 0.2;
+
+        // Filter envelope with quick response
+        preset.env2.attack = 0.02;
+        preset.env2.decay = 0.4;
+        preset.env2.sustain = 0.5;
+        preset.env2.release = 0.3;
+
+        preset.master = 0.8;
+
+        preset
+    }
+
+    /// Create a "Sad" emotional preset
+    ///
+    /// Characteristics: Dark, slow, low filter, mellow
+    pub fn create_sad() -> Self {
+        let mut preset = Self::default();
+        preset.name = "Sad (Procedural)".to_string();
+
+        // Darker, mellow oscillators
+        preset.osc1.volume = 0.9;
+        preset.osc1.octave = -1; // Lower pitch
+        preset.osc1.semitones = 0;
+        preset.osc1.analog_wave = AnalogWaveform::Triangle;
+
+        preset.osc2.volume = 0.4;
+        preset.osc2.octave = 0;
+        preset.osc2.semitones = 3; // Minor third
+        preset.osc2.analog_wave = AnalogWaveform::Sine;
+
+        preset.osc3.volume = 0.2;
+        preset.osc3.octave = 1;
+        preset.osc3.analog_wave = AnalogWaveform::Sine;
+
+        // Dark, closed filter
+        preset.filter1.frequency = 800.0; // Low cutoff
+        preset.filter1.resonance = 0.1;
+        preset.filter1.env_amount = 0.2; // Minimal modulation
+
+        // Slow, smooth envelope
+        preset.env1.attack = 0.5;
+        preset.env1.decay = 1.0;
+        preset.env1.sustain = 0.5;
+        preset.env1.release = 1.5;
+
+        // Filter envelope with slow movement
+        preset.env2.attack = 0.8;
+        preset.env2.decay = 1.2;
+        preset.env2.sustain = 0.3;
+        preset.env2.release = 1.8;
+
+        preset.master = 0.7;
+
+        preset
+    }
+
+    /// Create an "Angry" emotional preset
+    ///
+    /// Characteristics: Harsh, aggressive, sharp attack, resonant filter
+    pub fn create_angry() -> Self {
+        let mut preset = Self::default();
+        preset.name = "Angry (Procedural)".to_string();
+
+        // Harsh, aggressive oscillators
+        preset.osc1.volume = 1.0;
+        preset.osc1.octave = 0;
+        preset.osc1.semitones = 0;
+        preset.osc1.analog_wave = AnalogWaveform::Saw;
+        preset.osc1.detune = 0.15; // Slight detune for tension
+
+        preset.osc2.volume = 0.9;
+        preset.osc2.octave = 0;
+        preset.osc2.semitones = 6; // Tritone (dissonant)
+        preset.osc2.analog_wave = AnalogWaveform::Pulse;
+        preset.osc2.pulsewidth = 0.3; // Thin pulse for harshness
+
+        preset.osc3.volume = 0.5;
+        preset.osc3.octave = -1;
+        preset.osc3.analog_wave = AnalogWaveform::Saw;
+
+        // Aggressive filter with high resonance
+        preset.filter1.frequency = 3000.0;
+        preset.filter1.resonance = 0.7; // High resonance
+        preset.filter1.env_amount = 0.8; // Strong modulation
+
+        // Sharp, percussive envelope
+        preset.env1.attack = 0.001;
+        preset.env1.decay = 0.1;
+        preset.env1.sustain = 0.6;
+        preset.env1.release = 0.2;
+
+        // Filter envelope with snap
+        preset.env2.attack = 0.001;
+        preset.env2.decay = 0.15;
+        preset.env2.sustain = 0.4;
+        preset.env2.release = 0.25;
+
+        preset.master = 0.75;
+
+        preset
+    }
+
+    /// Create a "Calm" emotional preset
+    ///
+    /// Characteristics: Warm, smooth, gentle, balanced
+    pub fn create_calm() -> Self {
+        let mut preset = Self::default();
+        preset.name = "Calm (Procedural)".to_string();
+
+        // Warm, balanced oscillators
+        preset.osc1.volume = 0.7;
+        preset.osc1.octave = 0;
+        preset.osc1.semitones = 0;
+        preset.osc1.analog_wave = AnalogWaveform::Triangle;
+
+        preset.osc2.volume = 0.5;
+        preset.osc2.octave = 0;
+        preset.osc2.semitones = 4; // Major third
+        preset.osc2.analog_wave = AnalogWaveform::Sine;
+
+        preset.osc3.volume = 0.3;
+        preset.osc3.octave = 1;
+        preset.osc3.semitones = 7; // Perfect fifth
+        preset.osc3.analog_wave = AnalogWaveform::Sine;
+
+        // Smooth, balanced filter
+        preset.filter1.frequency = 2500.0;
+        preset.filter1.resonance = 0.15;
+        preset.filter1.env_amount = 0.3;
+
+        // Gentle, smooth envelope
+        preset.env1.attack = 0.2;
+        preset.env1.decay = 0.6;
+        preset.env1.sustain = 0.65;
+        preset.env1.release = 0.8;
+
+        // Filter envelope with gentle movement
+        preset.env2.attack = 0.3;
+        preset.env2.decay = 0.8;
+        preset.env2.sustain = 0.5;
+        preset.env2.release = 1.0;
+
+        preset.master = 0.75;
+
+        preset
+    }
+
+    /// Create a 2D emotional preset from four corner presets
+    ///
+    /// Uses bilinear interpolation for smooth 2D morphing
+    /// * `valence` - 0.0 (negative) to 1.0 (positive)
+    /// * `arousal` - 0.0 (low energy) to 1.0 (high energy)
+    pub fn create_emotional_2d(valence: f32, arousal: f32) -> Self {
+        let happy = Self::create_happy();    // +valence, +arousal
+        let sad = Self::create_sad();        // -valence, -arousal
+        let angry = Self::create_angry();    // -valence, +arousal
+        let calm = Self::create_calm();      // +valence, -arousal
+
+        // Bilinear interpolation
+        let top = happy.interpolate(&angry, 1.0 - valence);
+        let bottom = calm.interpolate(&sad, 1.0 - valence);
+        bottom.interpolate(&top, arousal)
+    }
+
     /// Parse preset from binary data
     pub fn from_bytes(data: &[u8]) -> Result<Self, ValueTreeError> {
         let tree = ValueTree::from_bytes(data)?;
@@ -573,6 +769,67 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn test_procedural_presets() {
+        // Test creating procedural emotional presets
+        let happy = OdinPreset::create_happy();
+        assert_eq!(happy.name, "Happy (Procedural)");
+        assert!(happy.filter1.frequency > 5000.0); // Bright
+        assert!(happy.env1.attack < 0.1); // Fast attack
+
+        let sad = OdinPreset::create_sad();
+        assert_eq!(sad.name, "Sad (Procedural)");
+        assert!(sad.filter1.frequency < 2000.0); // Dark
+        assert!(sad.env1.attack > 0.3); // Slow attack
+
+        let angry = OdinPreset::create_angry();
+        assert_eq!(angry.name, "Angry (Procedural)");
+        assert!(angry.filter1.resonance > 0.5); // High resonance
+        assert!(angry.env1.attack < 0.01); // Very fast attack
+
+        let calm = OdinPreset::create_calm();
+        assert_eq!(calm.name, "Calm (Procedural)");
+        assert!(calm.filter1.frequency > 2000.0 && calm.filter1.frequency < 5000.0); // Mid range
+
+        println!("✓ All procedural presets created successfully");
+    }
+
+    #[test]
+    fn test_procedural_preset_morphing() {
+        let happy = OdinPreset::create_happy();
+        let sad = OdinPreset::create_sad();
+
+        // Test morphing at different values
+        let morph_0 = happy.interpolate(&sad, 0.0);
+        assert_eq!(morph_0.name, "Happy (Procedural)");
+        assert!((morph_0.filter1.frequency - happy.filter1.frequency).abs() < 0.1);
+
+        let morph_50 = happy.interpolate(&sad, 0.5);
+        let expected_freq = (happy.filter1.frequency + sad.filter1.frequency) / 2.0;
+        assert!((morph_50.filter1.frequency - expected_freq).abs() < 1.0);
+
+        let morph_100 = happy.interpolate(&sad, 1.0);
+        assert_eq!(morph_100.name, "Sad (Procedural)");
+        assert!((morph_100.filter1.frequency - sad.filter1.frequency).abs() < 0.1);
+
+        println!("✓ Procedural preset morphing works correctly");
+    }
+
+    #[test]
+    fn test_emotional_2d_space() {
+        // Test 2D emotional space
+        let neutral = OdinPreset::create_emotional_2d(0.5, 0.5);
+        assert!(neutral.filter1.frequency > 2000.0 && neutral.filter1.frequency < 5000.0);
+
+        let very_happy = OdinPreset::create_emotional_2d(1.0, 1.0);
+        assert!(very_happy.filter1.frequency > 5000.0); // Should be bright like happy
+
+        let very_sad = OdinPreset::create_emotional_2d(0.0, 0.0);
+        assert!(very_sad.filter1.frequency < 2000.0); // Should be dark like sad
+
+        println!("✓ 2D emotional space interpolation works correctly");
     }
 
     #[test]

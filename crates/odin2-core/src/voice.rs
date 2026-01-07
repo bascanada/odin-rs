@@ -36,6 +36,15 @@ pub struct Voice {
 
     /// Sample rate
     sample_rate: f32,
+
+    /// Oscillator volumes from preset (default: [1.0, 1.0, 1.0])
+    pub osc_volumes: [f32; 3],
+
+    /// Filter envelope amount from preset (default: 0.0)
+    pub filter_env_amount: f32,
+
+    /// Base filter cutoff frequency (before envelope modulation)
+    pub filter_base_cutoff: f32,
 }
 
 impl Voice {
@@ -56,6 +65,9 @@ impl Voice {
             velocity: 0.0,
             active: false,
             sample_rate,
+            osc_volumes: [1.0, 1.0, 1.0],    // Default: all oscillators at full volume
+            filter_env_amount: 0.0,          // Default: no filter envelope modulation
+            filter_base_cutoff: 1000.0,      // Default: 1kHz
         }
     }
 
@@ -92,7 +104,7 @@ impl Voice {
 
         // Process envelopes
         let amp = self.amp_env.process();
-        let _filter_mod = self.filter_env.process();
+        let filter_mod = self.filter_env.process();
         let _mod = self.mod_env.process();
 
         // Check if voice should be deactivated
@@ -101,14 +113,18 @@ impl Voice {
             return (0.0, 0.0);
         }
 
-        // Mix oscillators
+        // Mix oscillators WITH preset volumes
         let mut osc_out = 0.0;
-        for osc in &mut self.oscillators {
-            osc_out += osc.process();
+        for (i, osc) in self.oscillators.iter_mut().enumerate() {
+            osc_out += osc.process() * self.osc_volumes[i];
         }
         osc_out /= OSCILLATORS_PER_VOICE as f32;
 
-        // Apply filter
+        // Apply filter WITH envelope modulation
+        // Modulate filter cutoff by envelope amount
+        let mod_cutoff = self.filter_base_cutoff + filter_mod * self.filter_env_amount * FILTER_ENV_MODULATION_HZ;
+        self.filter1.set_cutoff(mod_cutoff.clamp(20.0, 20000.0));
+
         let filtered = self.filter1.process(osc_out);
 
         // Apply amplitude envelope and velocity
