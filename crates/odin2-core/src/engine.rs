@@ -3,11 +3,15 @@
 use crate::voice::Voice;
 use crate::mod_matrix::ModMatrix;
 use crate::constants::*;
-use crate::dsp::oscillators::Oscillator;
-use crate::dsp::filters::Filter;
 
 #[cfg(feature = "std")]
 use crate::preset::OdinPreset;
+
+#[cfg(feature = "std")]
+use crate::dsp::oscillators::Oscillator;
+
+#[cfg(feature = "std")]
+use crate::dsp::filters::Filter;
 
 /// Generic synthesizer engine trait
 pub trait SynthEngine {

@@ -57,8 +57,8 @@ impl OdinPreset {
     /// ```
     /// use odin2_core::preset::OdinPreset;
     ///
-    /// let happy = OdinPreset::load("happy.odin")?;
-    /// let sad = OdinPreset::load("sad.odin")?;
+    /// let happy = OdinPreset::create_happy();
+    /// let sad = OdinPreset::create_sad();
     /// let mixed = happy.interpolate(&sad, 0.3); // 30% toward sad
     /// ```
     pub fn interpolate(&self, other: &Self, t: f32) -> Self {

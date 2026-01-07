@@ -19,12 +19,12 @@ build-debug:
 # Run all tests
 test:
 	@echo "Running all tests..."
-	cargo test -p odin2-core
+	cargo test -p odin2-core --features std
 
 # Run tests with output
 test-verbose:
 	@echo "Running all tests (verbose)..."
-	cargo test -p odin2-core -- --nocapture
+	cargo test -p odin2-core --features std -- --nocapture
 
 # Generate audio samples
 samples: build-debug
