@@ -71,6 +71,14 @@ pub mod constants {
     /// Default oscillator frequency (A4)
     pub const OSC_FREQ_DEFAULT: f32 = 440.0;
 
+    /// Filter envelope modulation scaling factor (Hz)
+    ///
+    /// This constant scales the filter envelope modulation amount to Hz.
+    /// A typical envelope value (0.0-1.0) multiplied by env_amount (0.0-1.0)
+    /// and this constant gives the cutoff frequency modulation in Hz.
+    /// Example: env_val=1.0 * env_amount=1.0 * 5000.0 = +5000 Hz modulation
+    pub const FILTER_ENV_MODULATION_HZ: f32 = 5000.0;
+
     /// Pi constant
     pub const PI: f32 = core::f32::consts::PI;
 

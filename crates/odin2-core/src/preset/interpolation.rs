@@ -128,12 +128,7 @@ impl OdinPreset {
             arpeggiator: interpolate_arpeggiator(&self.arpeggiator, &other.arpeggiator, t),
 
             // === Global Parameters ===
-            master: if self.master > 0.0 && other.master > 0.0 {
-                lerp_f32(self.master, other.master, t)
-            } else {
-                // Fallback to 0.7 if either is 0.0
-                0.7
-            },
+            master: lerp_f32(self.master, other.master, t),
             glide: lerp_f32(self.glide, other.glide, t),
             unison_detune: lerp_f32(self.unison_detune, other.unison_detune, t),
             unison_width: lerp_f32(self.unison_width, other.unison_width, t),

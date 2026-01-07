@@ -122,7 +122,7 @@ impl Voice {
 
         // Apply filter WITH envelope modulation
         // Modulate filter cutoff by envelope amount
-        let mod_cutoff = self.filter_base_cutoff + filter_mod * self.filter_env_amount * 5000.0;
+        let mod_cutoff = self.filter_base_cutoff + filter_mod * self.filter_env_amount * FILTER_ENV_MODULATION_HZ;
         self.filter1.set_cutoff(mod_cutoff.clamp(20.0, 20000.0));
 
         let filtered = self.filter1.process(osc_out);

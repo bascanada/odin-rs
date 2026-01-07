@@ -13,6 +13,7 @@ use std::process::Command;
 
 use hound::{WavSpec, WavWriter};
 
+use odin2_core::constants::FILTER_ENV_MODULATION_HZ;
 use odin2_core::dsp::effects::{Chorus, Delay, ZitaReverb};
 use odin2_core::dsp::envelopes::{Adsr, Envelope};
 use odin2_core::dsp::filters::{Filter, LadderFilter, LadderFilterType};
@@ -396,7 +397,7 @@ impl Voice {
 
         // Update filter with morphed params + envelope
         let filter_env_val = self.filter_env.process();
-        let mod_cutoff = params.filter_freq + filter_env_val * params.filter_env_amount * 5000.0;
+        let mod_cutoff = params.filter_freq + filter_env_val * params.filter_env_amount * FILTER_ENV_MODULATION_HZ;
         self.filter.set_cutoff(mod_cutoff.clamp(20.0, 20000.0));
         self.filter.set_resonance(params.filter_res);
         self.filter.set_filter_type(LadderFilterType::LP4);

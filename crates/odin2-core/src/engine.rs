@@ -111,12 +111,8 @@ impl PresetConfig {
             filter_sustain: preset.env2.sustain,
             filter_release: preset.env2.release.max(0.01),
 
-            // Master volume
-            master_volume: if preset.master > 0.0 {
-                preset.master.clamp(0.0, 1.0)
-            } else {
-                0.7
-            },
+            // Master volume - respect preset's value directly, including silence
+            master_volume: preset.master.clamp(0.0, 1.0),
         }
     }
 }

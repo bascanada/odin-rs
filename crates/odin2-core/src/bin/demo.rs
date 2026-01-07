@@ -21,6 +21,7 @@ use std::process::Command;
 
 use hound::{WavSpec, WavWriter};
 
+use odin2_core::constants::FILTER_ENV_MODULATION_HZ;
 use odin2_core::dsp::effects::{Chorus, Delay, ZitaReverb};
 use odin2_core::dsp::envelopes::{Adsr, Envelope};
 use odin2_core::dsp::filters::{Filter, LadderFilter, LadderFilterType};
@@ -827,7 +828,7 @@ fn generate_odin_analog(preset: &OdinPreset, freq: f32, start: f32, dur: f32, sr
 
         if use_filter {
             let filter_env_val = filter_env.process();
-            let mod_cutoff = preset.filter1.frequency + filter_env_val * preset.filter1.env_amount * 5000.0;
+            let mod_cutoff = preset.filter1.frequency + filter_env_val * preset.filter1.env_amount * FILTER_ENV_MODULATION_HZ;
             filter.set_cutoff(mod_cutoff.clamp(20.0, 20000.0));
             out = filter.process(out);
         }
@@ -930,7 +931,7 @@ fn generate_odin_multi(preset: &OdinPreset, freq: f32, start: f32, dur: f32, sr:
 
         if use_filter {
             let filter_env_val = filter_env.process();
-            let mod_cutoff = preset.filter1.frequency + filter_env_val * preset.filter1.env_amount * 5000.0;
+            let mod_cutoff = preset.filter1.frequency + filter_env_val * preset.filter1.env_amount * FILTER_ENV_MODULATION_HZ;
             filter.set_cutoff(mod_cutoff.clamp(20.0, 20000.0));
             left = filter.process(left);
             right = filter.process(right);
