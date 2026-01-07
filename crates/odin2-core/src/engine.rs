@@ -3,6 +3,11 @@
 use crate::voice::Voice;
 use crate::mod_matrix::ModMatrix;
 use crate::constants::*;
+use crate::dsp::oscillators::Oscillator;
+use crate::dsp::filters::Filter;
+
+#[cfg(feature = "std")]
+use crate::preset::OdinPreset;
 
 /// Generic synthesizer engine trait
 pub trait SynthEngine {
@@ -36,6 +41,82 @@ pub enum VoiceAllocation {
     StealQuietest,
 }
 
+/// Simplified preset configuration for engine-level preset loading
+///
+/// This struct extracts essential parameters from an OdinPreset and maps them
+/// to the engine's current capabilities (analog oscillators, basic filters, envelopes).
+#[cfg(feature = "std")]
+#[derive(Debug, Clone)]
+pub struct PresetConfig {
+    // Oscillators (simplified to analog)
+    pub osc_volumes: [f32; 3],
+    pub osc_octaves: [i32; 3],
+    pub osc_semitones: [i32; 3],
+    pub osc_detune: f32,
+
+    // Filter
+    pub filter_frequency: f32,
+    pub filter_resonance: f32,
+    pub filter_env_amount: f32,
+
+    // Amp envelope
+    pub amp_attack: f32,
+    pub amp_decay: f32,
+    pub amp_sustain: f32,
+    pub amp_release: f32,
+
+    // Filter envelope
+    pub filter_attack: f32,
+    pub filter_decay: f32,
+    pub filter_sustain: f32,
+    pub filter_release: f32,
+
+    // Master
+    pub master_volume: f32,
+}
+
+#[cfg(feature = "std")]
+impl PresetConfig {
+    /// Extract essential parameters from an OdinPreset
+    pub fn from_preset(preset: &OdinPreset) -> Self {
+        Self {
+            // Oscillator parameters
+            osc_volumes: [preset.osc1.volume, preset.osc2.volume, preset.osc3.volume],
+            osc_octaves: [preset.osc1.octave, preset.osc2.octave, preset.osc3.octave],
+            osc_semitones: [
+                preset.osc1.semitones,
+                preset.osc2.semitones,
+                preset.osc3.semitones,
+            ],
+            osc_detune: preset.osc1.detune,
+
+            // Filter parameters (from filter1)
+            filter_frequency: preset.filter1.frequency.clamp(20.0, 20000.0),
+            filter_resonance: preset.filter1.resonance,
+            filter_env_amount: preset.filter1.env_amount,
+
+            // Amp envelope (env1)
+            amp_attack: preset.env1.attack.max(0.001),
+            amp_decay: preset.env1.decay.max(0.001),
+            amp_sustain: preset.env1.sustain,
+            amp_release: preset.env1.release.max(0.01),
+
+            // Filter envelope (env2)
+            filter_attack: preset.env2.attack.max(0.001),
+            filter_decay: preset.env2.decay.max(0.001),
+            filter_sustain: preset.env2.sustain,
+            filter_release: preset.env2.release.max(0.01),
+
+            // Master volume
+            master_volume: if preset.master > 0.0 {
+                preset.master.clamp(0.0, 1.0)
+            } else {
+                0.7
+            },
+        }
+    }
+}
+
 /// The main Odin 2 synthesizer engine
 pub struct OdinEngine {
     /// Polyphonic voices
@@ -58,6 +139,10 @@ pub struct OdinEngine {
 
     /// Currently active notes (for note-off matching)
     note_to_voice: [Option<usize>; 128],
+
+    /// Current preset configuration
+    #[cfg(feature = "std")]
+    preset_config: Option<PresetConfig>,
 }
 
 impl OdinEngine {
@@ -71,6 +156,56 @@ impl OdinEngine {
             sample_rate,
             master_volume: 1.0,
             note_to_voice: [None; 128],
+            #[cfg(feature = "std")]
+            preset_config: None,
+        }
+    }
+
+    /// Load a preset into the engine
+    ///
+    /// This will apply the preset's parameters to all new voices that are triggered.
+    /// Currently active voices will not be affected.
+    #[cfg(feature = "std")]
+    pub fn load_preset(&mut self, preset: &OdinPreset) {
+        let config = PresetConfig::from_preset(preset);
+        self.master_volume = config.master_volume;
+        self.preset_config = Some(config);
+    }
+
+    /// Apply preset configuration to a specific voice
+    #[cfg(feature = "std")]
+    fn apply_preset_to_voice(&mut self, voice_idx: usize) {
+        if let Some(ref config) = self.preset_config {
+            let voice = &mut self.voices[voice_idx];
+            let note = voice.note;
+
+            // Apply oscillator pitch offsets and volumes
+            for (i, osc) in voice.oscillators.iter_mut().enumerate() {
+                let pitch_offset = (config.osc_octaves[i] * 12 + config.osc_semitones[i]) as f32;
+                let freq = crate::dsp::midi_to_freq(note)
+                    * libm::powf(2.0, pitch_offset / 12.0);
+                osc.set_frequency(freq);
+            }
+
+            // Store volumes for processing
+            voice.osc_volumes = config.osc_volumes;
+
+            // Apply filter settings
+            voice.filter_base_cutoff = config.filter_frequency;
+            voice.filter1.set_cutoff(config.filter_frequency);
+            voice.filter1.set_resonance(config.filter_resonance);
+            voice.filter_env_amount = config.filter_env_amount;
+
+            // Apply envelopes
+            voice.amp_env.set_attack(config.amp_attack);
+            voice.amp_env.set_decay(config.amp_decay);
+            voice.amp_env.set_sustain(config.amp_sustain);
+            voice.amp_env.set_release(config.amp_release);
+
+            voice.filter_env.set_attack(config.filter_attack);
+            voice.filter_env.set_decay(config.filter_decay);
+            voice.filter_env.set_sustain(config.filter_sustain);
+            voice.filter_env.set_release(config.filter_release);
         }
     }
 
@@ -131,6 +266,11 @@ impl SynthEngine for OdinEngine {
 
         // Start the note
         self.voices[voice_idx].note_on(note, velocity);
+
+        // Apply preset configuration if available
+        #[cfg(feature = "std")]
+        self.apply_preset_to_voice(voice_idx);
+
         self.note_to_voice[note as usize] = Some(voice_idx);
     }
 

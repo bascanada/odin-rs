@@ -6,6 +6,8 @@
 mod parser;
 #[cfg(feature = "std")]
 mod value_tree;
+#[cfg(feature = "std")]
+mod interpolation;
 
 #[cfg(feature = "std")]
 pub use parser::OdinPreset;

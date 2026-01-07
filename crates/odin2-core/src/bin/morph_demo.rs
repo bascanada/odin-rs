@@ -549,6 +549,11 @@ fn generate_morph_audio(sequence: &MorphSequence, melody: &Melody) -> Vec<f32> {
 }
 
 fn write_stereo_wav(path: &str, samples: &[f32]) {
+    // Create parent directory if it doesn't exist
+    if let Some(parent) = std::path::Path::new(path).parent() {
+        std::fs::create_dir_all(parent).ok();
+    }
+
     let spec = WavSpec {
         channels: 2,
         sample_rate: SAMPLE_RATE,
@@ -576,7 +581,7 @@ fn print_usage() {
     println!("  --presets A,B,C     Morph between named presets (comma-separated)");
     println!("  --melody NAME       Melody to play (default: slow_arpeggio)");
     println!("  --duration SECS     Duration per morph transition (default: 4.0)");
-    println!("  --output FILE       Output WAV file (default: ./morph_output.wav)");
+    println!("  --output FILE       Output WAV file (default: ../../samples/demos/morph_output.wav)");
     println!("  --play              Play audio after generation");
     println!("  --help              Show this help");
     println!();
@@ -606,7 +611,7 @@ fn main() {
     let mut preset_names: Option<String> = None;
     let mut melody_name = "slow_arpeggio".to_string();
     let mut duration = 4.0f32;
-    let mut output_file = "./morph_output.wav".to_string();
+    let mut output_file = "../../samples/demos/morph_output.wav".to_string();
     let mut play_audio = false;
 
     let mut i = 1;
