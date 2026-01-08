@@ -1,105 +1,67 @@
-# 🎵 Preset Morphing & Emotional Sound Design
+# 🎵 2D Scatter Morphing System
 
 ## What is this?
 
-odin-rs now includes **procedural emotional presets** and **smooth morphing** for creating adaptive game music. No external preset files needed - everything is built-in!
+odin-rs includes a **generic 2D scatter morphing system**. This allows you to place any number of presets at arbitrary coordinates on a 2D plane (X, Y) and smoothly interpolate between them based on proximity.
 
 ## Quick Demo
 
 ```bash
-# Generate 10 audio files demonstrating emotional morphing
+# Generate morphing examples
 make demo-morphing
-
-# Or generate all built-in presets
-make demo-all
-
-# Or run all demos
-make demos
-
-# Listen to the results (macOS will auto-play one file)
-# All files are saved in samples/ subdirectories
 ```
 
-## Generated Files
+## How It Works
 
-You'll get **10 WAV files** (~4 seconds each):
-
-### 1D Morphing (Happy → Sad)
-- `morph_00_pure_happy.wav` ⚡ Bright, fast, energetic
-- `morph_25_mostly_happy.wav` 
-- `morph_50_halfway.wav` 🎭 Bittersweet blend
-- `morph_75_mostly_sad.wav`
-- `morph_100_pure_sad.wav` 😔 Dark, slow, mellow
-
-### 2D Emotional Space
-- `2d_happy.wav` 😊 High valence, high arousal
-- `2d_sad.wav` 😢 Low valence, low arousal
-- `2d_angry.wav` 😠 Low valence, high arousal
-- `2d_calm.wav` 😌 High valence, low arousal
-- `2d_neutral.wav` 😐 Balanced
+1. **Define Source Presets**: Load existing presets or create them programmatically.
+2. **Assign Coordinates**: Place each preset at a specific (X, Y) location (e.g., corners of a square).
+3. **Interpolate**: Request a new preset at any target (X, Y) coordinate. The system calculates a weighted blend of all source presets using Inverse Distance Weighting (IDW).
 
 ## Use in Your Game
 
-### Simple Example
+### 2D Scatter Example
 
 ```rust
 use odin2_core::preset::OdinPreset;
 use odin2_core::engine::{OdinEngine, SynthEngine};
 
-// Setup (once)
+// Setup
 let mut engine = OdinEngine::new(44100.0);
-let happy = OdinPreset::create_happy();
-let sad = OdinPreset::create_sad();
+
+// Load or create source presets
+let p1 = OdinPreset::load("presets/Bass.odin").unwrap();
+let p2 = OdinPreset::load("presets/Pad.odin").unwrap();
+let p3 = OdinPreset::load("presets/Lead.odin").unwrap();
+let p4 = OdinPreset::load("presets/FX.odin").unwrap();
+
+// Define mapping (Preset, X, Y)
+let sources = vec![
+    (p1, -1.0, 1.0),   // Top-Left
+    (p2, 1.0, 1.0),    // Top-Right
+    (p3, -1.0, -1.0),  // Bottom-Left
+    (p4, 1.0, -1.0),   // Bottom-Right
+];
 
 // Game loop
-let player_health = 0.3; // 30% health
-let emotion = 1.0 - player_health; // 0.7 = 70% sad
-let sound = happy.interpolate(&sad, emotion);
-engine.load_preset(&sound);
+let tension = get_game_tension(); // -1.0 to 1.0
+let action = get_game_action();   // -1.0 to 1.0
 
-// Play
-engine.note_on(60, 100); // C4
+// Get blended preset
+let blended = OdinPreset::morph_2d(&sources, tension, action);
+
+// Apply to engine
+engine.load_preset(&blended);
+engine.note_on(60, 100);
 ```
-
-### 2D Emotional Space
-
-```rust
-// Based on game state
-let valence = if player_winning { 0.8 } else { 0.2 };
-let arousal = combat_intensity; // 0.0 to 1.0
-
-let sound = OdinPreset::create_emotional_2d(valence, arousal);
-engine.load_preset(&sound);
-```
-
-## Documentation
-
-- **[TESTING_MORPHING.md](TESTING_MORPHING.md)** - How to test and listen to audio
-- **[PRESET_MORPHING.md](PRESET_MORPHING.md)** - Complete API reference and examples
 
 ## Features
 
-✅ **4 Procedural Emotional Presets** (Happy, Sad, Angry, Calm)  
-✅ **1D Morphing** - Smooth transitions between two emotions  
-✅ **2D Emotional Space** - Valence × Arousal model  
-✅ **Real-time Performance** - < 5µs per interpolation  
-✅ **No External Files** - Everything built-in  
-✅ **Ready for Games** - Easy integration
+✅ **Generic 2D Morphing** - Interpolate between N presets  
+✅ **Inverse Distance Weighting** - Smooth, distance-based blending  
+✅ **Real-time Performance** - Optimized for game loops  
+✅ **Flexible Coordinate System** - Use any range (typically -1.0 to 1.0)  
 
-## Technical Details
+## Documentation
 
-- **Sample Rate:** 44,100 Hz
-- **Tests:** 131 passing
-- **Performance:** Real-time capable
-- **API:** Simple and intuitive
-
-## What's Next?
-
-After generating the audio files:
-
-1. **Listen** to understand the emotional range
-2. **Read** [PRESET_MORPHING.md](PRESET_MORPHING.md) for integration examples
-3. **Integrate** into your game's audio system
-4. **Experiment** with custom presets
-
-Enjoy creating adaptive, emotional music! 🎮🎵
+- **[TESTING_MORPHING.md](TESTING_MORPHING.md)** - How to test the system
+- **[PRESET_MORPHING.md](PRESET_MORPHING.md)** - Detailed API reference

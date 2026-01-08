@@ -1,6 +1,6 @@
 //! Preset Morphing Example
 //!
-//! Demonstrates smooth morphing between two Odin 2 presets.
+//! Demonstrates smooth morphing between Odin 2 presets coordinates on a 2D plane.
 //!
 //! Usage:
 //!   cargo run --example preset_morph --features std
@@ -13,7 +13,7 @@ use std::env;
 use std::process::Command;
 
 fn main() {
-    println!("=== Odin 2 Preset Morphing Example ===\n");
+    println!("=== Odin 2 Scatter Morphing Example ===\n");
 
     // Check if we should generate audio files
     let args: Vec<String> = env::args().collect();
@@ -23,76 +23,107 @@ fn main() {
     let sample_rate = 44100.0;
     let mut engine = OdinEngine::new(sample_rate);
 
-    // Create procedural emotional presets (no files needed!)
-    println!("Creating procedural emotional presets...\n");
+    println!("Loading factory source presets...\n");
 
-    let preset_happy = OdinPreset::create_happy();
-    println!("✓ Created: {} (osc1 vol: {:.2}, filter: {:.0} Hz)",
-             preset_happy.name, preset_happy.osc1.volume, preset_happy.filter1.frequency);
+    let path_prefix = "odin2/assets/Soundbanks/Factory Presets/Keys";
 
-    let preset_sad = OdinPreset::create_sad();
-    println!("✓ Created: {} (osc1 vol: {:.2}, filter: {:.0} Hz)",
-             preset_sad.name, preset_sad.osc1.volume, preset_sad.filter1.frequency);
+    // Preset 1: Synth Piano
+    let mut p1 = OdinPreset::load(format!("{}/Synth Piano.odin", path_prefix))
+        .expect("Failed to load Synth Piano");
+    p1.name = "P1: Synth Piano".to_string();
+    println!("✓ Loaded: {}", p1.name);
+    println!("  Master: {}, Amp Gain: {}", p1.master, p1.amp_gain);
+    println!("  Osc1: Vol={}, Type={:?}", p1.osc1.volume, p1.osc1.osc_type);
+    println!("  Osc2: Vol={}, Type={:?}", p1.osc2.volume, p1.osc2.osc_type);
+    println!("  Osc3: Vol={}, Type={:?}", p1.osc3.volume, p1.osc3.osc_type);
+    println!("  Filter1 Freq: {}", p1.filter1.frequency);
+    println!("  Amp Env: A={}, D={}, S={}, R={}", p1.env1.attack, p1.env1.decay, p1.env1.sustain, p1.env1.release);
 
-    let preset_angry = OdinPreset::create_angry();
-    println!("✓ Created: {} (osc1 vol: {:.2}, filter: {:.0} Hz)",
-             preset_angry.name, preset_angry.osc1.volume, preset_angry.filter1.frequency);
+    // Preset 2: Toy Piano
+    let mut p2 = OdinPreset::load(format!("{}/Toy Piano.odin", path_prefix))
+        .expect("Failed to load Toy Piano");
+    p2.name = "P2: Toy Piano".to_string();
+    println!("✓ Loaded: {}", p2.name);
 
-    let preset_calm = OdinPreset::create_calm();
-    println!("✓ Created: {} (osc1 vol: {:.2}, filter: {:.0} Hz)",
-             preset_calm.name, preset_calm.osc1.volume, preset_calm.filter1.frequency);
+    // Preset 3: Pianet
+    let mut p3 = OdinPreset::load(format!("{}/Pianet.odin", path_prefix))
+        .expect("Failed to load Pianet");
+    p3.name = "P3: Pianet".to_string();
+    println!("✓ Loaded: {}", p3.name);
 
-    let preset_a = preset_happy;
-    let preset_b = preset_sad;
+    // Preset 4: Piano Ballad 3
+    let mut p4 = OdinPreset::load(format!("{}/Piano Ballad 3.odin", path_prefix))
+        .expect("Failed to load Piano Ballad 3");
+    p4.name = "P4: Piano Ballad".to_string();
+    println!("✓ Loaded: {}", p4.name);
+
+    // Define sources with their coordinates
+    let sources = vec![
+        (p1.clone(), -1.0, 1.0),
+        (p2.clone(), 1.0, 1.0),
+        (p3.clone(), -1.0, -1.0),
+        (p4.clone(), 1.0, -1.0),
+    ];
 
     println!("\n--- Morphing Examples ---\n");
 
-    // Example 1: Pure preset A (t=0.0)
-    println!("1. Pure Preset A (t=0.0):");
-    let morphed_0 = preset_a.interpolate(&preset_b, 0.0);
-    println!("   Name: {}", morphed_0.name);
-    println!("   Osc1 volume: {:.3}", morphed_0.osc1.volume);
-    println!("   Filter freq: {:.1} Hz", morphed_0.filter1.frequency);
-    println!("   Env1 attack: {:.3}s", morphed_0.env1.attack);
+    // Example 1: Center (0, 0)
+    println!("1. Center Position (0.0, 0.0):");
+    let morphed_center = OdinPreset::morph_2d(&sources, 0.0, 0.0);
+    println!("   Name: {}", morphed_center.name); // Should be blend of all 4
+    println!("   Filter freq: {:.1} Hz", morphed_center.filter1.frequency);
+    println!("   Env1 attack: {:.4}s", morphed_center.env1.attack);
 
-    // Example 2: 30% toward preset B (t=0.3)
-    println!("\n2. 30% Toward Preset B (t=0.3):");
-    let morphed_30 = preset_a.interpolate(&preset_b, 0.3);
-    println!("   Name: {}", morphed_30.name);
-    println!("   Osc1 volume: {:.3}", morphed_30.osc1.volume);
-    println!("   Filter freq: {:.1} Hz", morphed_30.filter1.frequency);
-    println!("   Env1 attack: {:.3}s", morphed_30.env1.attack);
+    // Example 2: Near P1 (-0.8, 0.8)
+    println!("\n2. Near P1 (-0.8, 0.8):");
+    let morphed_p1 = OdinPreset::morph_2d(&sources, -0.8, 0.8);
+    println!("   Filter freq: {:.1} Hz (Close to 8000)", morphed_p1.filter1.frequency);
 
-    // Example 3: Halfway blend (t=0.5)
-    println!("\n3. Halfway Blend (t=0.5):");
-    let morphed_50 = preset_a.interpolate(&preset_b, 0.5);
-    println!("   Name: {}", morphed_50.name);
-    println!("   Osc1 volume: {:.3}", morphed_50.osc1.volume);
-    println!("   Filter freq: {:.1} Hz", morphed_50.filter1.frequency);
-    println!("   Env1 attack: {:.3}s", morphed_50.env1.attack);
-
-    // Example 4: Smooth interpolation
-    println!("\n4. Smooth Interpolation (t=0.5 with easing):");
-    let morphed_smooth = preset_a.interpolate_smooth(&preset_b, 0.5);
-    println!("   Name: {}", morphed_smooth.name);
-    println!("   Osc1 volume: {:.3}", morphed_smooth.osc1.volume);
-
-    // Example 5: Pure preset B (t=1.0)
-    println!("\n5. Pure Preset B (t=1.0):");
-    let morphed_100 = preset_a.interpolate(&preset_b, 1.0);
-    println!("   Name: {}", morphed_100.name);
-    println!("   Osc1 volume: {:.3}", morphed_100.osc1.volume);
+    // Example 3: Near P3 (-0.8, -0.8)
+    println!("\n3. Near P3 (-0.8, -0.8):");
+    let morphed_p3 = OdinPreset::morph_2d(&sources, -0.8, -0.8);
+    println!("   Filter freq: {:.1} Hz (Close to 120)", morphed_p3.filter1.frequency);
 
     // Load morphed preset into engine
     println!("\n--- Loading Morphed Preset into Engine ---");
-    engine.load_preset(&morphed_50);
-    println!("✓ Loaded 50% blend into engine");
-    println!("  Master volume: {:.2}", engine.master_volume);
+    engine.load_preset(&morphed_center);
+    println!("✓ Loaded center blend into engine");
 
     // Generate audio if requested
     if generate_audio {
-        println!("\n--- Generating Audio Files ---");
-        generate_audio_files(sample_rate);
+        println!("\n--- Generating Source Preset Previews ---");
+        // Verify individual presets work before morphing
+        generate_preview("preview_p1_synth_piano.wav", sample_rate, &p1);
+        generate_preview("preview_p2_toy_piano.wav", sample_rate, &p2);
+        generate_preview("preview_p3_pianet.wav", sample_rate, &p3);
+        generate_preview("preview_p4_piano_ballad.wav", sample_rate, &p4);
+
+        println!("\n--- Generating Morphing Audio Files ---");
+        // Linear Transitions
+        // 1. Sad to Happy: Synth Piano -> Toy Piano
+        generate_linear_transition("transition_synth_to_toy.wav", sample_rate, &p1, &p2);
+        
+        // 2. Pianet -> Piano Ballad
+        generate_linear_transition("transition_pianet_to_ballad.wav", sample_rate, &p3, &p4);
+
+        // 3. Diagonal Morph (True 2D Test)
+        // Moves from Top-Left (Synth Piano) to Bottom-Right (Piano Ballad)
+        // traversing the center where all 4 presets blend.
+        generate_path_morph(
+            "morph_diagonal_2d.wav", 
+            sample_rate, 
+            &sources, 
+            (-1.0, 1.0), // Start: Top-Left
+            (1.0, -1.0)  // End: Bottom-Right
+        );
+
+        // 4. Circular Morph
+        // Rotates around the center at radius 0.8, visiting all quadrants
+        generate_circle_morph("morph_circle.wav", sample_rate, &sources, 0.8);
+
+        println!("\n--- Generating Drum Morphing Demos ---");
+        run_drum_morph_demo(sample_rate);
+
     } else {
         // Quick test
         println!("\n--- Quick Audio Test ---");
@@ -116,60 +147,59 @@ fn main() {
         println!("   cargo run --example preset_morph --features std -- --generate-audio");
     }
 
-    println!("\n--- 2D Emotional Space Example ---");
-    println!("\nUsing bilinear interpolation in 2D emotion space:");
-    println!("  Valence (x-axis): 0.0 (negative) → 1.0 (positive)");
-    println!("  Arousal (y-axis): 0.0 (low energy) → 1.0 (high energy)\n");
-
-    // Corner presets
-    println!("Corner positions:");
-    println!("  (0.0, 0.0) = Sad     (low valence, low arousal)");
-    println!("  (1.0, 0.0) = Calm    (high valence, low arousal)");
-    println!("  (0.0, 1.0) = Angry   (low valence, high arousal)");
-    println!("  (1.0, 1.0) = Happy   (high valence, high arousal)");
-
-    // Test some 2D positions
-    println!("\nTest positions:");
-
-    let pos1 = OdinPreset::create_emotional_2d(0.5, 0.5);
-    println!("  (0.5, 0.5) - Neutral: {}", pos1.name);
-
-    let pos2 = OdinPreset::create_emotional_2d(0.8, 0.3);
-    println!("  (0.8, 0.3) - Peaceful: {}", pos2.name);
-
-    let pos3 = OdinPreset::create_emotional_2d(0.2, 0.7);
-    println!("  (0.2, 0.7) - Anxious: {}", pos3.name);
-
-    println!("\n--- Usage in Your Game ---");
-    println!("\nFor procedural music generation:");
-    println!("```rust");
-    println!("// Create presets (once at startup)");
-    println!("let happy = OdinPreset::create_happy();");
-    println!("let sad = OdinPreset::create_sad();");
-    println!();
-    println!("// In your game loop:");
-    println!("let emotion = player_emotion_score(); // 0.0 to 1.0");
-    println!("let sound = happy.interpolate(&sad, emotion);");
-    println!("engine.load_preset(&sound);");
-    println!();
-    println!("// Or use 2D emotional space:");
-    println!("let valence = player_happiness();  // 0.0 to 1.0");
-    println!("let arousal = player_energy();     // 0.0 to 1.0");
-    println!("let sound = OdinPreset::create_emotional_2d(valence, arousal);");
-    println!("engine.load_preset(&sound);");
-    println!("```");
-
     println!("\n✓ Done!");
 }
 
-/// Generate audio files demonstrating preset morphing
-fn generate_audio_files(sample_rate: f32) {
-    // Create output directory
-    let output_dir = "../../samples/morphing";
+/// Generate a simple preview of a single preset
+fn generate_preview(filename: &str, sample_rate: f32, preset: &OdinPreset) {
+    println!("Generating preview: {} ({})", preset.name, filename);
+    let output_dir = "samples/morphing";
     std::fs::create_dir_all(output_dir).expect("Failed to create output directory");
+    
+    let mut engine = OdinEngine::new(sample_rate);
+    engine.load_preset(preset);
 
-    let happy = OdinPreset::create_happy();
-    let sad = OdinPreset::create_sad();
+    // Play a C Major Arpeggio
+    let notes = [60, 64, 67, 72];
+    let note_duration = 0.5; // seconds
+    let samples_per_note = (sample_rate * note_duration) as usize;
+    
+    let mut buffer = Vec::new();
+
+    for &note in &notes {
+        engine.note_on(note, 100);
+        
+        let mut note_buffer = vec![0.0f32; samples_per_note * 2]; // Stereo
+        engine.process(&mut note_buffer, 2);
+        
+        buffer.extend_from_slice(&note_buffer);
+        engine.note_off(note);
+    }
+
+    // Release phase
+    let release_samples = (sample_rate * 1.0) as usize;
+    let mut release_buffer = vec![0.0f32; release_samples * 2];
+    engine.process(&mut release_buffer, 2);
+    buffer.extend_from_slice(&release_buffer);
+
+    // Check Max Amplitude
+    let max_amp = buffer.iter().map(|&s| s.abs()).fold(0.0f32, f32::max);
+    println!("  -> Max Amplitude: {:.6}", max_amp);
+    
+    if max_amp < 0.001 {
+        println!("  WARNING: Signal is very weak!");
+    }
+
+    let wav_path = format!("{}/{}", output_dir, filename);
+    write_wav(&wav_path, &buffer, sample_rate as u32);
+    println!("  ✓ Saved to {}", wav_path);
+}
+
+/// Generate a set of WAV files exploring the morph space
+fn generate_audio_files(sample_rate: f32, sources: &[(OdinPreset, f32, f32)]) {
+    // Create output directory
+    let output_dir = "samples/morphing";
+    std::fs::create_dir_all(output_dir).expect("Failed to create output directory");
 
     // Melody to play
     let melody = [
@@ -182,62 +212,28 @@ fn generate_audio_files(sample_rate: f32) {
         (60, 3.0, 1.0),   // C4 (long)
     ];
 
-    let morph_levels = [
-        (0.0, "00_pure_happy"),
-        (0.25, "25_mostly_happy"),
-        (0.5, "50_halfway"),
-        (0.75, "75_mostly_sad"),
-        (1.0, "100_pure_sad"),
+    // Define points to visit in the 2D space
+    let points = [
+        (-1.0, 1.0, "top_left"),
+        (1.0, 1.0, "top_right"),
+        (-1.0, -1.0, "bottom_left"),
+        (1.0, -1.0, "bottom_right"),
+        (0.0, 0.0, "center"),
+        (0.0, 1.0, "top_edge"),
+        (0.0, -1.0, "bottom_edge"),
+        (-1.0, 0.0, "left_edge"),
+        (1.0, 0.0, "right_edge"),
     ];
 
-    for (t, filename) in &morph_levels {
-        println!("Generating: morph_{}.wav (t={:.2})", filename, t);
+    for (x, y, name) in &points {
+        println!("Generating: morph_{}.wav (x={:.1}, y={:.1})", name, x, y);
 
-        let morphed = happy.interpolate(&sad, *t);
-        let audio = render_melody(&morphed, &melody, sample_rate);
-
-        let wav_path = format!("{}/morph_{}.wav", output_dir, filename);
-        write_wav(&wav_path, &audio, sample_rate as u32);
-        println!("  ✓ Saved to {}", wav_path);
-    }
-
-    println!("\n--- 2D Emotional Space Demos ---");
-
-    let positions_2d = [
-        ((1.0, 1.0), "2d_happy"),
-        ((0.0, 0.0), "2d_sad"),
-        ((0.0, 1.0), "2d_angry"),
-        ((1.0, 0.0), "2d_calm"),
-        ((0.5, 0.5), "2d_neutral"),
-    ];
-
-    for ((valence, arousal), filename) in &positions_2d {
-        println!("Generating: {}.wav (v={:.1}, a={:.1})", filename, valence, arousal);
-
-        let preset = OdinPreset::create_emotional_2d(*valence, *arousal);
+        let preset = OdinPreset::morph_2d(sources, *x, *y);
         let audio = render_melody(&preset, &melody, sample_rate);
 
-        let wav_path = format!("{}/{}.wav", output_dir, filename);
+        let wav_path = format!("{}/morph_{}.wav", output_dir, name);
         write_wav(&wav_path, &audio, sample_rate as u32);
         println!("  ✓ Saved to {}", wav_path);
-    }
-
-    println!("\n✅ All audio files generated in: {}/", output_dir);
-    println!("\nYou can now listen to:");
-    println!("  - {}/morph_00_pure_happy.wav → morph_100_pure_sad.wav", output_dir);
-    println!("  - {}/2d_happy.wav, 2d_sad.wav, 2d_angry.wav, 2d_calm.wav", output_dir);
-
-    // Try to play the first file on macOS
-    #[cfg(target_os = "macos")]
-    {
-        let play_file = format!("{}/morph_50_halfway.wav", output_dir);
-        println!("\n🔊 Playing {}...", play_file);
-        let _ = Command::new("afplay").arg(&play_file).status();
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        println!("\n💡 Use your audio player to listen to the generated WAV files.");
     }
 }
 
@@ -317,4 +313,287 @@ fn write_wav(path: &str, samples: &[f32], sample_rate: u32) {
     }
 
     writer.finalize().unwrap();
+}
+
+/// Generate a specific demo transitioning from "Sad" to "Happy" over time
+fn generate_linear_transition(
+    filename: &str,
+    sample_rate: f32,
+    start_preset: &OdinPreset,
+    end_preset: &OdinPreset
+) {
+    println!("\nGenerating transition: {} -> {} ({})", start_preset.name, end_preset.name, filename);
+    let output_dir = "samples/morphing";
+    
+    // 2. Setup Engine
+    let mut engine = OdinEngine::new(sample_rate);
+    
+    // 3. Define Sequence (Fast arpeggio to show per-note timbral change)
+    let duration = 10.0; // seconds
+    let note_duration = 0.125; // 8th notes at 120bpm approx
+    let num_notes = (duration / note_duration) as usize;
+    
+    // Simple progression
+    let notes = [60, 64, 67, 72, 67, 64]; // C Major Arpeggio
+    
+    let mut buffer = Vec::new();
+    let samples_per_note = (sample_rate * note_duration) as usize;
+    
+    for i in 0..num_notes {
+        let t = i as f32 / num_notes as f32; // 0.0 to 1.0
+        
+        // Interpolate preset
+        let current_preset = start_preset.interpolate(end_preset, t);
+        
+        // Load into engine (affects next note on)
+        engine.load_preset(&current_preset);
+        
+        // Play note
+        let note = notes[i % notes.len()];
+        engine.note_on(note, 100);
+        
+        // Render block
+        let mut note_buffer = vec![0.0f32; samples_per_note * 2];
+        for j in 0..samples_per_note {
+            let mut frame = [0.0; 2];
+            engine.process(&mut frame, 2);
+            note_buffer[j*2] = frame[0];
+            note_buffer[j*2+1] = frame[1];
+        }
+        
+        // Note off (shortly before end for articulation)
+        engine.note_off(note);
+        
+        buffer.extend_from_slice(&note_buffer);
+    }
+    
+    // Write File
+    let wav_path = format!("{}/{}", output_dir, filename);
+    write_wav(&wav_path, &buffer, sample_rate as u32);
+    println!("  ✓ Saved to {}", wav_path);
+}
+
+/// Generates a morph along a 2D path using the scatter system
+fn generate_path_morph(
+    filename: &str, 
+    sample_rate: f32, 
+    sources: &[(OdinPreset, f32, f32)],
+    start_pos: (f32, f32),
+    end_pos: (f32, f32)
+) {
+    println!("\nGenerating 2D Path Morph: ({:.1},{:.1}) -> ({:.1},{:.1}) in {}", 
+        start_pos.0, start_pos.1, end_pos.0, end_pos.1, filename);
+        
+    let output_dir = "samples/morphing";
+    let mut engine = OdinEngine::new(sample_rate);
+    
+    // Use the same arpeggio pattern as linear transition for better comparison
+    let duration = 10.0;
+    let note_duration = 0.125;
+    let num_notes = (duration / note_duration) as usize;
+    let notes = [60, 64, 67, 72, 67, 64]; // C Major Arpeggio
+    
+    let mut buffer = Vec::new();
+    let samples_per_note = (sample_rate * note_duration) as usize;
+    
+    for i in 0..num_notes {
+        let t = i as f32 / num_notes as f32;
+        
+        // Calculate current 2D position
+        let x = start_pos.0 + (end_pos.0 - start_pos.0) * t;
+        let y = start_pos.1 + (end_pos.1 - start_pos.1) * t;
+        
+        // --- THE KEY 2D MORPH CALL ---
+        let morphed_preset = OdinPreset::morph_2d(sources, x, y);
+        
+        // Update Engine
+        engine.load_preset(&morphed_preset);
+        
+        // Play note
+        let note = notes[i % notes.len()];
+        engine.note_on(note, 100);
+        
+        // Process Audio Block
+        let mut note_buffer = vec![0.0f32; samples_per_note * 2];
+        for j in 0..samples_per_note {
+            let mut frame = [0.0; 2];
+            engine.process(&mut frame, 2);
+            note_buffer[j*2] = frame[0];
+            note_buffer[j*2+1] = frame[1];
+        }
+        
+        // Note off
+        engine.note_off(note);
+        buffer.extend_from_slice(&note_buffer);
+    }
+    
+    let wav_path = format!("{}/{}", output_dir, filename);
+    write_wav(&wav_path, &buffer, sample_rate as u32);
+    println!("  ✓ Saved to {}", wav_path);
+}
+
+/// Generates a circular morph around the center (0,0)
+fn generate_circle_morph(
+    filename: &str,
+    sample_rate: f32,
+    sources: &[(OdinPreset, f32, f32)],
+    radius: f32
+) {
+    println!("\nGenerating Circular Morph: Radius {} in {}", radius, filename);
+    
+    let output_dir = "samples/morphing";
+    let mut engine = OdinEngine::new(sample_rate);
+    
+    // Arpeggio pattern
+    let duration = 10.0;
+    let note_duration = 0.125;
+    let num_notes = (duration / note_duration) as usize;
+    let notes = [60, 64, 67, 72, 67, 64]; // C Major Arpeggio
+    
+    let mut buffer = Vec::new();
+    let samples_per_note = (sample_rate * note_duration) as usize;
+    
+    for i in 0..num_notes {
+        let t = i as f32 / num_notes as f32; // 0.0 to 1.0
+        
+        // Calculate circular position
+        // Start from -PI/2 (Bottom) or PI (Left)? Let's start at Top (0)
+        // The x position should go from -1 (Left) to 1 (Right)
+        // The y position should go from -1 (Bottom) to 1 (Top)
+        
+        // Let's do a full rotation starting from Top (0, 1) -> Right (1, 0) -> Bottom (0, -1) -> Left (-1, 0) -> Top
+        // Angle goes from PI/2 down to -3*PI/2?
+        // Or standard unit circle: 0 is Right (1,0), PI/2 is Top (0,1)
+        
+        let angle = t * 2.0 * std::f32::consts::PI; 
+        
+        let x = radius * angle.cos();
+        let y = radius * angle.sin();
+        
+        // --- THE KEY 2D MORPH CALL ---
+        let morphed_preset = OdinPreset::morph_2d(sources, x, y);
+        
+        // Update Engine
+        engine.load_preset(&morphed_preset);
+        
+        // Play note
+        let note = notes[i % notes.len()];
+        engine.note_on(note, 100);
+        
+        // Process Audio Block
+        let mut note_buffer = vec![0.0f32; samples_per_note * 2];
+        for j in 0..samples_per_note {
+            let mut frame = [0.0; 2];
+            engine.process(&mut frame, 2);
+            note_buffer[j*2] = frame[0];
+            note_buffer[j*2+1] = frame[1];
+        }
+        
+        // Note off
+        engine.note_off(note);
+        buffer.extend_from_slice(&note_buffer);
+    }
+    
+    let wav_path = format!("{}/{}", output_dir, filename);
+    write_wav(&wav_path, &buffer, sample_rate as u32);
+    println!("  ✓ Saved to {}", wav_path);
+}
+
+/// Generates a circular morph around the center (0,0) for Drums (Steady beat)
+fn generate_drum_circle_morph(
+    filename: &str,
+    sample_rate: f32,
+    sources: &[(OdinPreset, f32, f32)],
+    radius: f32
+) {
+    println!("\nGenerating Circular Drum Morph: Radius {} in {}", radius, filename);
+    
+    let output_dir = "samples/morphing";
+    let mut engine = OdinEngine::new(sample_rate);
+    
+    // Steady beat pattern (quarter notes)
+    let duration = 10.0;
+    
+    // Slower temp for drums to hear detail
+    let note_duration = 0.25; // Quarter note at 120bpm approx (0.5s) -> let's do 8th notes (0.25s)
+    let num_notes = (duration / note_duration) as usize;
+    
+    // Just a fixed note C4 (60)
+    let note = 60;
+    
+    let mut buffer = Vec::new();
+    let samples_per_note = (sample_rate * note_duration) as usize;
+    
+    for i in 0..num_notes {
+        let t = i as f32 / num_notes as f32; // 0.0 to 1.0
+        
+        // Full circle rotation
+        let angle = t * 2.0 * std::f32::consts::PI; 
+        
+        let x = radius * angle.cos();
+        let y = radius * angle.sin();
+        
+        // --- THE KEY 2D MORPH CALL ---
+        let morphed_preset = OdinPreset::morph_2d(sources, x, y);
+        
+        // Update Engine
+        engine.load_preset(&morphed_preset);
+        
+        // Play note
+        engine.note_on(note, 100);
+        
+        // Process Audio Block
+        let mut note_buffer = vec![0.0f32; samples_per_note * 2];
+        for j in 0..samples_per_note {
+            let mut frame = [0.0; 2];
+            engine.process(&mut frame, 2);
+            note_buffer[j*2] = frame[0];
+            note_buffer[j*2+1] = frame[1];
+        }
+        
+        // Note off
+        engine.note_off(note);
+        buffer.extend_from_slice(&note_buffer);
+    }
+    
+    let wav_path = format!("{}/{}", output_dir, filename);
+    write_wav(&wav_path, &buffer, sample_rate as u32);
+    println!("  ✓ Saved to {}", wav_path);
+}
+
+fn run_drum_morph_demo(sample_rate: f32) {
+    let path_prefix = "odin2/assets/Soundbanks/Factory Presets/Drums";
+
+    // Load Drum Presets
+    let p1 = OdinPreset::load(format!("{}/Kick-1 [Photonic].odin", path_prefix))
+        .expect("Failed to load Kick");
+    let p2 = OdinPreset::load(format!("{}/Snare-1 [Photonic].odin", path_prefix))
+        .expect("Failed to load Snare");
+    // Use Drum Machine to test Sequencer morphing
+    let p3 = OdinPreset::load(format!("{}/Drum Machine.odin", path_prefix))
+        .expect("Failed to load Drum Machine");
+    let p4 = OdinPreset::load(format!("{}/HiHat-closed [Photonic].odin", path_prefix))
+        .expect("Failed to load HiHat");
+
+    println!("✓ Loaded Drum Presets: Kick, Snare, Drum Machine, HiHat");
+
+    let sources = vec![
+        (p1, -1.0, 1.0),   // Top-Left: Kick
+        (p2, 1.0, 1.0),    // Top-Right: Snare
+        (p3, -1.0, -1.0),  // Bottom-Left: Drum Machine (Seq)
+        (p4, 1.0, -1.0),   // Bottom-Right: HiHat
+    ];
+
+    // Generate previews to make sure they work
+    generate_preview("preview_drum_kick.wav", sample_rate, &sources[0].0);
+    generate_preview("preview_drum_snare.wav", sample_rate, &sources[1].0);
+    generate_preview("preview_drum_machine.wav", sample_rate, &sources[2].0);
+    generate_preview("preview_drum_hihat.wav", sample_rate, &sources[3].0);
+
+    // Circular Morph for Drums (using repeated single note)
+    generate_drum_circle_morph("morph_drums_circle.wav", sample_rate, &sources, 0.8);
+    
+    // Also try a path directly into the Drum Machine from Kick
+    // Kick (No Arp) -> Drum Machine (Arp)
+    generate_linear_transition("transition_kick_to_machine.wav", sample_rate, &sources[0].0, &sources[2].0);
 }

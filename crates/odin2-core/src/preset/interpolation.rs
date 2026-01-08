@@ -4,6 +4,7 @@
 
 extern crate alloc;
 use alloc::format;
+use alloc::string::ToString;
 
 use super::parser::OdinPreset;
 use super::types::*;
@@ -57,9 +58,10 @@ impl OdinPreset {
     /// ```
     /// use odin2_core::preset::OdinPreset;
     ///
-    /// let happy = OdinPreset::create_happy();
-    /// let sad = OdinPreset::create_sad();
-    /// let mixed = happy.interpolate(&sad, 0.3); // 30% toward sad
+    /// let p1 = OdinPreset::default();
+    /// let p2 = OdinPreset::default();
+    /// // ... set some values ...
+    /// let mixed = p1.interpolate(&p2, 0.3); // 30% toward p2
     /// ```
     pub fn interpolate(&self, other: &Self, t: f32) -> Self {
         self.interpolate_linear(other, t)
@@ -71,6 +73,51 @@ impl OdinPreset {
     pub fn interpolate_smooth(&self, other: &Self, t: f32) -> Self {
         let smooth_t = smooth_step(t);
         self.interpolate_linear(other, smooth_t)
+    }
+
+    /// Mix multiple presets with weights
+    pub fn mix_presets(presets: &[&OdinPreset], weights: &[f32]) -> Self {
+        if presets.is_empty() {
+            return Self::default();
+        }
+
+        // Check for dominant weight to preserve name
+        let mut dominant_idx = None;
+        for (i, &w) in weights.iter().enumerate() {
+            if w > 0.99 {
+                dominant_idx = Some(i);
+                break;
+            }
+        }
+
+        // If one preset has basically all weight, return it directly
+        if let Some(idx) = dominant_idx {
+            return presets[idx].clone();
+        }
+
+        // Recursively mix components using linear interpolation
+        let mut running_mix = presets[0].clone();
+        
+        if presets.len() > 1 {
+            let mut current_weight_sum = weights[0];
+            
+            for i in 1..presets.len() {
+                let next_weight = weights[i];
+                if next_weight < 0.00001 { continue; }
+
+                let total = current_weight_sum + next_weight;
+                if total > 0.0 {
+                    let ratio = next_weight / total;
+                    running_mix = running_mix.interpolate(presets[i], ratio);
+                }
+                current_weight_sum = total;
+            }
+        }
+        
+        // precise name
+        running_mix.name = "Morph 2D".to_string();
+        
+        running_mix
     }
 
     /// Core linear interpolation implementation

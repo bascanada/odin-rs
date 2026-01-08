@@ -45,7 +45,7 @@ samples: build-debug
 # Creates 10 WAV files demonstrating 1D and 2D emotional morphing
 demo-morphing:
 	@echo "=== Generating Emotional Preset Morphing Examples ==="
-	cd crates/odin2-core && cargo run --example preset_morph --features std -- --generate-audio
+	cargo run -p odin2-core --example preset_morph --features std -- --generate-audio
 	@echo ""
 	@echo "Generated files in samples/morphing/:"
 	@ls -1 samples/morphing/*.wav 2>/dev/null || echo "No files found"

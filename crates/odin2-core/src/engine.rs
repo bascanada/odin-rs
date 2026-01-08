@@ -83,9 +83,22 @@ pub struct PresetConfig {
 impl PresetConfig {
     /// Extract essential parameters from an OdinPreset
     pub fn from_preset(preset: &OdinPreset) -> Self {
+        // Helper to convert dB to linear gain
+        let db_to_lin = |db: f32| {
+            if db <= -100.0 {
+                0.0
+            } else {
+                libm::powf(10.0, db / 20.0)
+            }
+        };
+
         Self {
             // Oscillator parameters
-            osc_volumes: [preset.osc1.volume, preset.osc2.volume, preset.osc3.volume],
+            osc_volumes: [
+                db_to_lin(preset.osc1.volume),
+                db_to_lin(preset.osc2.volume),
+                db_to_lin(preset.osc3.volume),
+            ],
             osc_octaves: [preset.osc1.octave, preset.osc2.octave, preset.osc3.octave],
             osc_semitones: [
                 preset.osc1.semitones,
@@ -111,8 +124,8 @@ impl PresetConfig {
             filter_sustain: preset.env2.sustain,
             filter_release: preset.env2.release.max(0.01),
 
-            // Master volume - respect preset's value directly, including silence
-            master_volume: preset.master.clamp(0.0, 1.0),
+            // Master volume - convert dB to linear
+            master_volume: db_to_lin(preset.master),
         }
     }
 }
