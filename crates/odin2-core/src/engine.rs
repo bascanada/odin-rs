@@ -185,6 +185,15 @@ impl OdinEngine {
         self.preset_config = Some(config);
     }
 
+    /// Load a preset configuration directly
+    ///
+    /// Useful for allocation-free updates from real-time threads
+    #[cfg(feature = "std")]
+    pub fn load_config(&mut self, config: PresetConfig) {
+        self.master_volume = config.master_volume;
+        self.preset_config = Some(config);
+    }
+
     /// Apply preset configuration to a specific voice
     #[cfg(feature = "std")]
     fn apply_preset_to_voice(&mut self, voice_idx: usize) {
